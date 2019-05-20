@@ -1,5 +1,7 @@
 import random
 from enum import Enum
+from typing import List
+from collections import defaultdict
 
 
 class Suit(Enum):
@@ -49,6 +51,39 @@ class Card:
         suit = Suit(val / num_suits)
         rank = Rank(val % num_suits)
         return Card(suit, rank)
+
+    @staticmethod
+    def get_sets(cards: List['Card']):
+        cards_by_rank = defaultdict(list)
+        for card in cards:
+            cards_by_rank[card.rank].append(card)
+        sets = []
+        for rank in cards_by_rank:
+            if len(cards_by_rank[rank]) >= 3:
+                sets.append(cards_by_rank[rank])
+        return sets
+
+    @staticmethod
+    def get_runs(cards: List['Card']):
+        cards_by_suit = defaultdict(list)
+        for card in cards:
+            cards_by_suit[card.suit].append(card)
+        runs = []
+        for suit in cards_by_suit:
+            run = []
+            for card in sorted(cards_by_suit[suit]):
+                if not run:
+                    run.append(card)
+                elif card.rank.value == run[-1].rank.value + 1:
+                    run.append(card)
+                elif len(run) >= 3:
+                    runs.append(run)
+                    run = [card]
+                else:
+                    run = [card]
+            if len(run) >= 3:
+                runs.append(run)
+        return runs
 
 
 class Deck:

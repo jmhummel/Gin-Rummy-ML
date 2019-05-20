@@ -78,9 +78,11 @@ class GinRummy(Game):
         self.turn += 1
         self.cur_player = self.get_opponent(self.cur_player)
 
-    # TODO
+    def can_knock(self):
+        pass  # TODO
+
     def evaluate_knock(self):
-        pass
+        pass  # TODO
 
     def get_action_size(self):
         return len(Action)
