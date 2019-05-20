@@ -36,6 +36,12 @@ class Card:
     def __lt__(self, other):
         return self.value() < other.value()
 
+    def __hash__(self):
+        return hash((self.suit, self.rank))
+
+    def __repr__(self):
+        return 'Card<' + self.suit.name + ', ' + self.rank.name + '>'
+
     def value(self):
         return self.suit.value * len(Suit) + self.rank.value
 

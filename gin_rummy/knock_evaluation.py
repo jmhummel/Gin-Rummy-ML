@@ -20,7 +20,7 @@ def is_run_meld(cards: List[Card]):
     suit = cards[0].suit
     rank = cards[0].rank
     for i, card in enumerate(cards):
-        if card.suit != suit or card.rank != rank + i + 1:
+        if card.suit != suit or card.rank.value != rank.value + i + 1:
             return False
     return True
 
@@ -37,12 +37,12 @@ def is_set_meld(cards: List[Card]):
 
 def sort_by_value(cards: List[Card]):
     """ Returns cards sorted first by number value, then by suit """
-    return sorted(cards, key=attrgetter('rank', 'suit'))
+    return sorted(cards, key=attrgetter('rank.value', 'suit.value'))
 
 
 def sort_by_suit(cards: List[Card]):
     """ Returns cards sorted first by suit, then by number value """
-    return sorted(cards, key=attrgetter('suit', 'rank'))
+    return sorted(cards, key=attrgetter('suit.value', 'rank.value'))
 
 
 class MeldNode:
@@ -104,38 +104,39 @@ def calc_optimal_deadwood(cards: List[Card]):
     # First, check for 4 card sets of the same-numbered card
     cards = sort_by_value(cards)
     for i in range(len(cards) - 3):
-        pos_meld = cards[i:i+3]
+        pos_meld = cards[i:i+4]
         if is_set_meld(pos_meld):
             all_melds.append(pos_meld)
             # When a 4-card meld is found, also add all the possible 3-card melds which
             # won't be picked up by the subsequent 3-card scan.
-            all_melds.append([pos_meld[i] for i in [0, 1, 3]])
-            all_melds.append([pos_meld[i] for i in [0, 2, 3]])
+            print(pos_meld)
+            all_melds.append([pos_meld[j] for j in [0, 1, 3]])
+            all_melds.append([pos_meld[j] for j in [0, 2, 3]])
 
     # Next, check for 3 card sets of the same-numbered card
     for i in range(len(cards) - 2):
-        pos_meld = cards[i:i+2]
+        pos_meld = cards[i:i+3]
         if is_set_meld(pos_meld):
             all_melds.append(pos_meld)
 
     # Next, check for 3 card runs in the same suit
     cards = sort_by_suit(cards)
     for i in range(len(cards) - 2):
-        pos_meld = cards[i:i+2]
+        pos_meld = cards[i:i+3]
         if is_run_meld(pos_meld):
             all_melds.append(pos_meld)
 
     # Next, check for 4 card runs
     cards = sort_by_suit(cards)
     for i in range(len(cards) - 3):
-        pos_meld = cards[i:i+3]
+        pos_meld = cards[i:i+4]
         if is_run_meld(pos_meld):
             all_melds.append(pos_meld)
 
     # Next, check for 5 card runs
     cards = sort_by_suit(cards)
     for i in range(len(cards) - 4):
-        pos_meld = cards[i:i+4]
+        pos_meld = cards[i:i+5]
         if is_run_meld(pos_meld):
             all_melds.append(pos_meld)
 

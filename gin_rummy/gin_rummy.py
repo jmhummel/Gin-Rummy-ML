@@ -2,7 +2,7 @@ import random
 from enum import IntEnum
 from typing import List
 
-from gin_rummy import can_knock
+from gin_rummy.knock_evaluation import can_knock
 from gin_rummy.cards import Deck, Card
 from mcts import Game
 

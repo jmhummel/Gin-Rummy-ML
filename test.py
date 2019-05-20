@@ -1,4 +1,4 @@
-from gin_rummy import can_knock
+from gin_rummy.knock_evaluation import can_knock
 from gin_rummy.cards import Card, Suit, Rank
 
 
