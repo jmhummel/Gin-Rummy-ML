@@ -1,6 +1,8 @@
 import random
 from enum import IntEnum
+from typing import List
 
+from gin_rummy import can_knock
 from gin_rummy.cards import Deck, Card
 from mcts import Game
 
@@ -79,7 +81,7 @@ class GinRummy(Game):
         self.cur_player = self.get_opponent(self.cur_player)
 
     def can_knock(self):
-        pass  # TODO
+        return can_knock(self.hands[self.cur_player])
 
     def evaluate_knock(self):
         pass  # TODO
@@ -127,9 +129,9 @@ class GinRummy(Game):
             self.next_turn()
 
     def get_observation_size(self):
-        pass
+        return 52
 
-    def get_observation(self, player: int):
+    def get_observation(self, player: int) -> List[int]:
         observation = [CardState.STOCK]*52
         for card in self.discard_pile[:-1]:
             observation[card.value()] = CardState.DISCARD
@@ -139,8 +141,9 @@ class GinRummy(Game):
             observation[card.value()] = CardState.MY_HAND
         for card in self.hands[self.get_opponent(player)]:
             observation[card.value()] = CardState.OPP_HAND
+        return observation
 
-    def get_observation_str(self, observation: [int]):
+    def get_observation_str(self, observation: List[int]) -> str:
         return str(observation)
 
     def is_ended(self):
