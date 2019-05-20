@@ -19,7 +19,7 @@ def is_run_meld(cards: List[Card]):
         return False
     suit = cards[0].suit
     rank = cards[0].rank
-    for i, card in enumerate(cards):
+    for i, card in enumerate(cards[1:]):
         if card.suit != suit or card.rank.value != rank.value + i + 1:
             return False
     return True
@@ -144,6 +144,9 @@ def calc_optimal_deadwood(cards: List[Card]):
 
     # All possible melds have been found. Now, find the optimal set of melds.
     all_melds.sort(key=count_deadwood)
+    print('All melds:')
+    for meld in all_melds:
+        print(meld)
     best_score, best_melds = get_best_combination(all_melds)
     deadwood = count_deadwood(cards) - best_score
     print("Optimal melds: ")
