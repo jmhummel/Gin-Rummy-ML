@@ -3,7 +3,7 @@ from gin_rummy.cards import Card, Suit, Rank
 import unittest
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 
 class TestKnockEvaluation(unittest.TestCase):
@@ -23,9 +23,6 @@ class TestKnockEvaluation(unittest.TestCase):
 
     def test_calc_optimal_deadwood(self):
         self.assertEqual(calc_optimal_deadwood(self.hand), 24)
-
-    def test_can_knock(self):
-        self.assertFalse(can_knock(self.hand))
 
 
 class TestKnockEvaluation2(unittest.TestCase):

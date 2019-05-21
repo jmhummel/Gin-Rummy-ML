@@ -169,16 +169,14 @@ def calc_optimal_deadwood(cards: List[Card]):
 
 
 def can_knock(cards: List[Card]):
-    if len(cards) == 10:
-        return calc_optimal_deadwood(cards) <= 10
-    elif len(cards) == 11:
-        # 11 cards, need to discard one
-        if calc_optimal_deadwood(cards) <= 20:
-            for i in range(len(cards)):
-                hand = cards[:i] + cards[i+1:]
-                logger.info("i: " + str(hand))
-                if calc_optimal_deadwood(hand) <= 10:
-                    return True
-        return False
-    else:
-        raise Exception(f"Got {len(cards)} cards")
+    if len(cards) != 11:
+        raise Exception("Should only be called with exactly 11 cards")
+
+    if calc_optimal_deadwood(cards) <= 20:
+        for i in range(len(cards)):
+            hand = cards[:i] + cards[i+1:]
+            logger.info("i: " + str(hand))
+            if calc_optimal_deadwood(hand) <= 10:
+                return True
+    return False
+
