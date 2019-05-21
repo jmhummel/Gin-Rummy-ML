@@ -22,7 +22,8 @@ class TestKnockEvaluation(unittest.TestCase):
         ]
 
     def test_calc_optimal_deadwood(self):
-        self.assertEqual(calc_optimal_deadwood(self.hand), 24)
+        deadwood, _ = calc_optimal_deadwood(self.hand)
+        self.assertEqual(deadwood, 24)
 
 
 class TestKnockEvaluation2(unittest.TestCase):
@@ -42,7 +43,8 @@ class TestKnockEvaluation2(unittest.TestCase):
         ]
 
     def test_calc_optimal_deadwood(self):
-        self.assertEqual(calc_optimal_deadwood(self.hand), 14)
+        deadwood, _ = calc_optimal_deadwood(self.hand)
+        self.assertEqual(deadwood, 14)
 
     def test_can_knock(self):
         self.assertTrue(can_knock(self.hand))

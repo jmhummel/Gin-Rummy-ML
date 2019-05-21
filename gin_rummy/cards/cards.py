@@ -53,7 +53,7 @@ class Rank(Enum):
 
 
 class Card:
-    def __init__(self, suit, rank):
+    def __init__(self, suit: Suit, rank: Rank):
         self.suit = suit
         self.rank = rank
 

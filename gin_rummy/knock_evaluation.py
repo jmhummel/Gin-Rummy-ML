@@ -165,18 +165,102 @@ def calc_optimal_deadwood(cards: List[Card]):
         for card in meld:
             deadwood_cards.remove(card)
     logger.info(f"Deadwood: {', '.join([str(c) for c in sort_by_value(deadwood_cards)])} ({deadwood})")
-    return deadwood
+    return deadwood, best_melds
 
 
 def can_knock(cards: List[Card]):
     if len(cards) != 11:
         raise Exception("Should only be called with exactly 11 cards")
 
-    if calc_optimal_deadwood(cards) <= 20:
+    deadwood, _ = calc_optimal_deadwood(cards)
+    if deadwood <= 20:
         for i in range(len(cards)):
             hand = cards[:i] + cards[i+1:]
             logger.info("i: " + str(hand))
-            if calc_optimal_deadwood(hand) <= 10:
+            deadwood, _ = calc_optimal_deadwood(hand)
+            if deadwood <= 10:
                 return True
     return False
 
+
+def get_layable_melds(existing_melds: List[List[Card]], cards: List[Card]) -> List[List[Card]]:
+    layable_melds = []
+
+    # First, check 3 card sets of the same-numbered card
+    existing_sets = [meld for meld in existing_melds if is_set_meld(meld) and len(meld) == 3]
+    for set_meld in existing_sets:
+        rank = set_meld[0].rank
+        for card in cards:
+            if card.rank.value == rank.value:
+                layable_melds.append([card])
+
+    # Next, check for runs in the same suit
+    cards = sort_by_value(cards)
+    existing_runs = [meld for meld in existing_melds if is_run_meld(meld)]
+    for run_meld in existing_runs:
+        suit = run_meld[0].suit
+        start_rank = run_meld[0].rank
+        end_rank = run_meld[-1].rank
+
+        for i in range(len(cards)):
+            if cards[i].suit.value == suit.value:
+                if cards[i].rank.value == start_rank.value - 2 and i+1<len(cards) and cards[i+1].rank.value == start_rank.value - 1:
+                    layable_melds.append([cards[i], cards[i+1]])
+                if cards[i].rank.value == start_rank.value - 1:
+                    layable_melds.append([cards[i]])
+                if cards[i].rank.value == end_rank.value + 1:
+                    layable_melds.append([cards[i]])
+                if cards[i].rank.value == end_rank.value + 1 and i+1<len(cards) and cards[i+1].rank.value == start_rank.value + 2:
+                    layable_melds.append([cards[i], cards[i+1]])
+
+
+
+
+    cards = sort_by_value(cards)
+    for i in range(len(cards) - 3):
+        pos_meld = cards[i:i+4]
+        if is_set_meld(pos_meld):
+            all_melds.append(pos_meld)
+            # When a 4-card meld is found, also add all the possible 3-card melds which
+            # won't be picked up by the subsequent 3-card scan.
+            all_melds.append([pos_meld[j] for j in [0, 1, 3]])
+            all_melds.append([pos_meld[j] for j in [0, 2, 3]])
+
+    # Next, check for 3 card sets of the same-numbered card
+    for i in range(len(cards) - 2):
+        pos_meld = cards[i:i+3]
+        if is_set_meld(pos_meld):
+            all_melds.append(pos_meld)
+
+    # Next, check for 3 card runs in the same suit
+    cards = sort_by_suit(cards)
+    for i in range(len(cards) - 2):
+        pos_meld = cards[i:i+3]
+        if is_run_meld(pos_meld):
+            all_melds.append(pos_meld)
+
+    # Next, check for 4 card runs
+    cards = sort_by_suit(cards)
+    for i in range(len(cards) - 3):
+        pos_meld = cards[i:i+4]
+        if is_run_meld(pos_meld):
+            all_melds.append(pos_meld)
+
+    # Next, check for 5 card runs
+    cards = sort_by_suit(cards)
+    for i in range(len(cards) - 4):
+        pos_meld = cards[i:i+5]
+        if is_run_meld(pos_meld):
+            all_melds.append(pos_meld)
+
+    # 6 or more card run are equivalent to multiple smaller runs.
+    return all_melds
+
+def evaluate_knock(player_hand, opponent_hand):
+    player_deadwood, player_melds = calc_optimal_deadwood(player_hand)
+
+    # Calculate best melds for opponent, allowing lays extending player's melds
+    cards_to_consider = opponent_hand[:]
+    for meld in player_melds:
+        cards_to_consider.extend(meld)
+    all_melds = get_all_melds(cards_to_consider)
