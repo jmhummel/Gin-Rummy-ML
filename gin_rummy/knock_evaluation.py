@@ -1,6 +1,9 @@
 from operator import attrgetter
 from typing import List
 from gin_rummy.cards import Card
+import logging
+
+logger = logging.getLogger('knock_evaluation')
 
 
 def point_value(card: Card) -> int:
@@ -92,13 +95,15 @@ def get_meld_set(leaf_node):
 
 
 def get_best_combination(melds):
+    if not melds:
+        return 0, []
     best_leaf = build_meld_tree(melds)
     best_score = best_leaf.deadwood
     best_melds = get_meld_set(best_leaf)
     return best_score, best_melds
 
 
-def calc_optimal_deadwood(cards: List[Card]):
+def get_all_melds(cards: List[Card]) -> List[List[Card]]:
     all_melds = []
 
     # First, check for 4 card sets of the same-numbered card
@@ -109,7 +114,6 @@ def calc_optimal_deadwood(cards: List[Card]):
             all_melds.append(pos_meld)
             # When a 4-card meld is found, also add all the possible 3-card melds which
             # won't be picked up by the subsequent 3-card scan.
-            print(pos_meld)
             all_melds.append([pos_meld[j] for j in [0, 1, 3]])
             all_melds.append([pos_meld[j] for j in [0, 2, 3]])
 
@@ -141,31 +145,40 @@ def calc_optimal_deadwood(cards: List[Card]):
             all_melds.append(pos_meld)
 
     # 6 or more card run are equivalent to multiple smaller runs.
+    return all_melds
 
-    # All possible melds have been found. Now, find the optimal set of melds.
+
+def calc_optimal_deadwood(cards: List[Card]):
+    logger.info('calc_optimal_deadwood: ' + str(cards))
+    all_melds = get_all_melds(cards)
+
+    # Find the optimal set of melds.
     all_melds.sort(key=count_deadwood)
-    print('All melds:')
+    logger.info('All melds:')
     for meld in all_melds:
-        print(meld)
+        logger.info(meld)
     best_score, best_melds = get_best_combination(all_melds)
     deadwood = count_deadwood(cards) - best_score
-    print("Optimal melds: ")
+    logger.info(f"Optimal melds: {' '.join([str(m) for m in best_melds])}")
+    deadwood_cards = cards[:]
     for meld in best_melds:
-        print(meld)
         for card in meld:
-            cards.remove(card)
-    print("Deadwood: ")
-    print(sort_by_value(cards))
+            deadwood_cards.remove(card)
+    logger.info(f"Deadwood: {', '.join([str(c) for c in sort_by_value(deadwood_cards)])} ({deadwood})")
     return deadwood
 
 
 def can_knock(cards: List[Card]):
     if len(cards) == 10:
         return calc_optimal_deadwood(cards) <= 10
-    else:
+    elif len(cards) == 11:
         # 11 cards, need to discard one
         if calc_optimal_deadwood(cards) <= 20:
             for i in range(len(cards)):
-                if calc_optimal_deadwood(cards[:i] + cards[i+1:]) <= 10:
+                hand = cards[:i] + cards[i+1:]
+                logger.info("i: " + str(hand))
+                if calc_optimal_deadwood(hand) <= 10:
                     return True
         return False
+    else:
+        raise Exception(f"Got {len(cards)} cards")

@@ -8,6 +8,15 @@ class Suit(Enum):
     CLUBS = 2
     HEARTS = 3
 
+    def __str__(self):
+        d = {
+            self.SPADES: 'S',
+            self.DIAMONDS: 'D',
+            self.CLUBS: 'C',
+            self.HEARTS: 'H',
+        }
+        return d[self]
+
 
 class Rank(Enum):
     ACE = 0
@@ -23,6 +32,24 @@ class Rank(Enum):
     JACK = 10
     QUEEN = 11
     KING = 12
+
+    def __str__(self):
+        d = {
+            self.ACE: 'A',
+            self.TWO: '2',
+            self.THREE: '3',
+            self.FOUR: '4',
+            self.FIVE: '5',
+            self.SIX: '6',
+            self.SEVEN: '7',
+            self.EIGHT: '8',
+            self.NINE: '9',
+            self.TEN: 'T',
+            self.JACK: 'J',
+            self.QUEEN: 'Q',
+            self.KING: 'K',
+        }
+        return d[self]
 
 
 class Card:
@@ -40,7 +67,7 @@ class Card:
         return hash((self.suit, self.rank))
 
     def __repr__(self):
-        return 'Card<' + self.suit.name + ', ' + self.rank.name + '>'
+        return f'{self.rank}{self.suit}'
 
     def value(self):
         return self.suit.value * len(Suit) + self.rank.value
