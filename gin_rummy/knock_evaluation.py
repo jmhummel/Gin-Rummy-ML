@@ -204,57 +204,20 @@ def get_layable_melds(existing_melds: List[List[Card]], cards: List[Card]) -> Li
 
         for i in range(len(cards)):
             if cards[i].suit.value == suit.value:
-                if cards[i].rank.value == start_rank.value - 2 and i+1<len(cards) and cards[i+1].rank.value == start_rank.value - 1:
+                if cards[i].rank.value == start_rank.value - 2 and i+1<len(cards) and \
+                        cards[i+1].rank.value == start_rank.value - 1:
                     layable_melds.append([cards[i], cards[i+1]])
                 if cards[i].rank.value == start_rank.value - 1:
                     layable_melds.append([cards[i]])
                 if cards[i].rank.value == end_rank.value + 1:
                     layable_melds.append([cards[i]])
-                if cards[i].rank.value == end_rank.value + 1 and i+1<len(cards) and cards[i+1].rank.value == start_rank.value + 2:
+                if cards[i].rank.value == end_rank.value + 1 and i+1<len(cards) \
+                        and cards[i+1].rank.value == start_rank.value + 2:
                     layable_melds.append([cards[i], cards[i+1]])
 
+    # 3 or more card lays on opp's runs are equivalent to own 3 card run
+    return layable_melds
 
-
-
-    cards = sort_by_value(cards)
-    for i in range(len(cards) - 3):
-        pos_meld = cards[i:i+4]
-        if is_set_meld(pos_meld):
-            all_melds.append(pos_meld)
-            # When a 4-card meld is found, also add all the possible 3-card melds which
-            # won't be picked up by the subsequent 3-card scan.
-            all_melds.append([pos_meld[j] for j in [0, 1, 3]])
-            all_melds.append([pos_meld[j] for j in [0, 2, 3]])
-
-    # Next, check for 3 card sets of the same-numbered card
-    for i in range(len(cards) - 2):
-        pos_meld = cards[i:i+3]
-        if is_set_meld(pos_meld):
-            all_melds.append(pos_meld)
-
-    # Next, check for 3 card runs in the same suit
-    cards = sort_by_suit(cards)
-    for i in range(len(cards) - 2):
-        pos_meld = cards[i:i+3]
-        if is_run_meld(pos_meld):
-            all_melds.append(pos_meld)
-
-    # Next, check for 4 card runs
-    cards = sort_by_suit(cards)
-    for i in range(len(cards) - 3):
-        pos_meld = cards[i:i+4]
-        if is_run_meld(pos_meld):
-            all_melds.append(pos_meld)
-
-    # Next, check for 5 card runs
-    cards = sort_by_suit(cards)
-    for i in range(len(cards) - 4):
-        pos_meld = cards[i:i+5]
-        if is_run_meld(pos_meld):
-            all_melds.append(pos_meld)
-
-    # 6 or more card run are equivalent to multiple smaller runs.
-    return all_melds
 
 def evaluate_knock(player_hand, opponent_hand):
     player_deadwood, player_melds = calc_optimal_deadwood(player_hand)
@@ -263,4 +226,20 @@ def evaluate_knock(player_hand, opponent_hand):
     cards_to_consider = opponent_hand[:]
     for meld in player_melds:
         cards_to_consider.extend(meld)
-    all_melds = get_all_melds(cards_to_consider)
+    all_melds = get_layable_melds(player_melds, opponent_hand) + get_all_melds(opponent_hand)
+
+    # Find the optimal set of melds.
+    all_melds.sort(key=count_deadwood)
+    logger.info('All melds:')
+    for meld in all_melds:
+        logger.info(meld)
+    opponent_score, opponent_melds = get_best_combination(all_melds)
+    opponent_deadwood = count_deadwood(opponent_hand) - opponent_score
+    logger.info(f"Opponent melds: {' '.join([str(m) for m in opponent_melds])}")
+    opponent_deadwood_cards = opponent_hand[:]
+    for meld in opponent_melds:
+        for card in meld:
+            opponent_deadwood_cards.remove(card)
+    opponent_deadwood_cards_str = ', '.join([str(c) for c in sort_by_value(opponent_deadwood_cards)])
+    logger.info(f"Opponent Deadwood: {opponent_deadwood_cards_str} ({opponent_deadwood})")
+
